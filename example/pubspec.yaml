@@ -1,0 +1,31 @@
+name: just_audio_vlc_example
+description: Demonstrates how to use the just_audio_vlc plugin.
+
+publish_to: 'none'
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  just_audio_vlc:
+    path: ../
+
+  cupertino_icons: ^1.0.2
+  just_audio: ^0.9.5
+  dart_vlc: ^0.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+dependency_overrides:
+  audio_session:
+    git: https://github.com/ryanheise/audio_session.git
+  just_audio:
+    path: ../../just_audio
