@@ -105,7 +105,7 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
 
     final bufferingProgressStream =
         player.bufferingProgressStream.listen((buffered) {
-      _bufferedPosition = Duration(seconds: buffered as int);
+      _bufferedPosition = Duration(seconds: buffered.toInt());
       if (buffered != 0) {
         _processingState = ProcessingStateMessage.buffering;
       }
