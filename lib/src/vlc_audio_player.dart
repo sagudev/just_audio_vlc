@@ -11,7 +11,7 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
 
   bool _isPlaying = false;
 
-	// TODO: just_audio uses uuid for id, but dart_vlc uses int!!!
+  // TODO: just_audio uses uuid for id, but dart_vlc uses int!!!
   void init() {
     player = Player(id: Random().nextInt(1000));
   }
@@ -61,7 +61,7 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
   Future<SeekResponse> seek(SeekRequest request) async {
     print('Position: ${request.position}, index: ${request.index}');
     if (request.index != null) {
-      player.jump(request.index!);
+      player.jumpToIndex(request.index!);
     }
     if (request.position != null) {
       player.seek(request.position!);
@@ -83,7 +83,7 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
         autoStart: false,
       );
       if (request.initialIndex != null) {
-        player.jump(request.initialIndex!);
+        player.jumpToIndex(request.initialIndex!);
       }
       if (request.initialPosition != null) {
         player.seek(request.initialPosition!);
