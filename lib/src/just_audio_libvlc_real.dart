@@ -51,19 +51,18 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
   List<StreamSubscription> streamSubscriptions = [];
   final _eventController = StreamController<PlaybackEventMessage>.broadcast();
   final _dataEventController = StreamController<PlayerDataMessage>.broadcast();
+  // TODO: not-working?
   ProcessingStateMessage _processingState = ProcessingStateMessage.idle;
   Duration _updatePosition = Duration.zero;
   Duration _bufferedPosition = Duration.zero;
-  Duration? _duration = null;
-  int? _currentIndex = null;
+  Duration? _duration;
+  int? _currentIndex;
   Player player;
 
   bool _isPlaying = false;
 
   VlcAudioPlayer(String id)
-      : player = Player(
-          id: _id,
-        ),
+      : player = Player(id: _id, commandlineArguments: ['--no-video']),
         super(id) {
     _id++;
 
@@ -148,22 +147,29 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
   @override
   Future<ConcatenatingInsertAllResponse> concatenatingInsertAll(
       ConcatenatingInsertAllRequest request) async {
-    // TODO: implement concatenatingInsertAll
-    return super.concatenatingInsertAll(request);
+    for (final AudioSourceMessage child in request.children) {
+      for (final messasgeChild in _loadAudioMedia(child)) {
+        player.add(messasgeChild);
+      }
+    }
+    return ConcatenatingInsertAllResponse();
   }
 
   @override
   Future<ConcatenatingMoveResponse> concatenatingMove(
       ConcatenatingMoveRequest request) async {
-    // TODO: implement concatenatingMove
-    return super.concatenatingMove(request);
+    player.move(request.currentIndex, request.newIndex);
+    return ConcatenatingMoveResponse();
   }
 
   @override
   Future<ConcatenatingRemoveRangeResponse> concatenatingRemoveRange(
       ConcatenatingRemoveRangeRequest request) async {
-    // TODO: implement concatenatingRemoveRange
-    return super.concatenatingRemoveRange(request);
+    for (var i = request.startIndex; i < request.endIndex; i++) {
+      // TODO: verify if working
+      player.remove(i);
+    }
+    return ConcatenatingRemoveRangeResponse();
   }
 
   @override
@@ -176,6 +182,14 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
   @override
   Future<DisposeResponse> dispose(DisposeRequest request) async {
     player.dispose();
+
+    await _eventController.close();
+    await _dataEventController.close();
+
+    for (final sub in streamSubscriptions) {
+      await sub.cancel();
+    }
+
     return DisposeResponse();
   }
 
@@ -191,12 +205,20 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
     return SeekResponse();
   }
 
-  Media _loadAudioMedia(AudioSourceMessage sourceMessage) {
+  List<Media> _loadAudioMedia(AudioSourceMessage sourceMessage) {
+    final medias = <Media>[];
     if (sourceMessage is UriAudioSourceMessage) {
-      return Media.network(sourceMessage.uri);
+      medias.add(Media.network(sourceMessage.uri));
+    } else if (sourceMessage is ConcatenatingAudioSourceMessage) {
+      medias.addAll(sourceMessage.children
+          .map(_loadAudioMedia)
+          // flatten
+          .expand((i) => i)
+          .toList());
     } else {
       throw UnimplementedError();
     }
+    return medias;
   }
 
   MediaSource _loadAudioSource(AudioSourceMessage sourceMessage) {
@@ -204,7 +226,11 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
       return Media.network(sourceMessage.uri);
     } else if (sourceMessage is ConcatenatingAudioSourceMessage) {
       return Playlist(
-          medias: sourceMessage.children.map(_loadAudioMedia).toList());
+          medias: sourceMessage.children
+              .map(_loadAudioMedia)
+              // flatten
+              .expand((i) => i)
+              .toList());
     } else {
       throw UnimplementedError();
     }
@@ -266,13 +292,13 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
     // TODO: verify what the hell these playlistmode mean
     switch (request.loopMode) {
       case LoopModeMessage.one:
-        player.setPlaylistMode(PlaylistMode.single);
+        player.setPlaylistMode(PlaylistMode.repeat);
         break;
       case LoopModeMessage.off:
-        player.setPlaylistMode(PlaylistMode.loop);
+        player.setPlaylistMode(PlaylistMode.single);
         break;
       case LoopModeMessage.all:
-        player.setPlaylistMode(PlaylistMode.repeat);
+        player.setPlaylistMode(PlaylistMode.loop);
         break;
       default:
         dev.log('Loopmode unimplemented', error: request.loopMode);
@@ -285,6 +311,7 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
   @override
   Future<SetShuffleModeResponse> setShuffleMode(
       SetShuffleModeRequest request) async {
+    // missing in dart_vlc
     // TODO: implement setShuffleMode
     // throw UnimplementedError();
     return SetShuffleModeResponse();
