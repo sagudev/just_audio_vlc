@@ -88,8 +88,9 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
 
     final playbackStream = player.playbackStream.listen((PlaybackState state) {
       if (state.isCompleted) {
-        _processingState = ProcessingStateMessage.ready;
+        _processingState = ProcessingStateMessage.completed;
       }
+      _processingState = ProcessingStateMessage.ready;
       _isPlaying = state.isPlaying;
       _handlePlaybackEvent();
     });
@@ -105,9 +106,6 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
     final bufferingProgressStream =
         player.bufferingProgressStream.listen((buffered) {
       _bufferedPosition = Duration(seconds: buffered.toInt());
-      if (buffered != 0) {
-        _processingState = ProcessingStateMessage.buffering;
-      }
       _handlePlaybackEvent();
     });
     streamSubscriptions.add(bufferingProgressStream);
