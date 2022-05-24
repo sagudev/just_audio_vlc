@@ -225,6 +225,7 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
   }
 
   MediaSource _loadAudioSource(AudioSourceMessage sourceMessage) {
+    // TODO: load more
     if (sourceMessage is UriAudioSourceMessage) {
       return Media.network(sourceMessage.uri);
     } else if (sourceMessage is ConcatenatingAudioSourceMessage) {
@@ -242,8 +243,6 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
   /// Loads an audio source.
   @override
   Future<LoadResponse> load(LoadRequest request) async {
-    // TODO: implement load
-
     if (_isPlaying) {
       player.pause();
     }
@@ -292,7 +291,6 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
 
   @override
   Future<SetLoopModeResponse> setLoopMode(SetLoopModeRequest request) async {
-    // TODO: verify what the hell these playlistmode mean
     switch (request.loopMode) {
       case LoopModeMessage.one:
         player.setPlaylistMode(PlaylistMode.repeat);
