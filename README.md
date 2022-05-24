@@ -2,12 +2,12 @@
 
 The [vlc](https://github.com/alexmercerind/dart_vlc) implementation of [`just_audio`](https://github.com/ryanheise/just_audio).
 
-This project was based on this works:
+This project is based on this great works:
 
 - [GZGavinZhao/just_audio](https://github.com/GZGavinZhao/just_audio)
 - [bdlukaa/just_audio_libwinmedia](https://github.com/bdlukaa/just_audio_libwinmedia)
 
-This library would not be possible without [alexmercerind/dart_vlc](https://github.com/alexmercerind/dart_vlc)
+and would not be possible without [alexmercerind/dart_vlc](https://github.com/alexmercerind/dart_vlc).
 
 Check out this repo for features table: [sagudev/just_audio](https://github.com/sagudev/just_audio/tree/vlc/just_audio)
 
