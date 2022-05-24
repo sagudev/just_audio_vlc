@@ -53,10 +53,6 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
   final _dataEventController = StreamController<PlayerDataMessage>.broadcast();
   // TODO: not-working?
   ProcessingStateMessage _processingState = ProcessingStateMessage.idle;
-  Duration _updatePosition = Duration.zero;
-  Duration _bufferedPosition = Duration.zero;
-  Duration? _duration;
-  int? _currentIndex;
   Player player;
 
   bool _isPlaying = false;
@@ -71,7 +67,7 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
     }
 
     final currentStream = player.currentStream.listen((CurrentState state) {
-      _currentIndex = state.index;
+      //state.index;
       //state.media;
       //state.medias;
       //state.isPlaylist;
@@ -80,8 +76,8 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
     streamSubscriptions.add(currentStream);
 
     final positionStream = player.positionStream.listen((PositionState state) {
-      _updatePosition = state.position!;
-      _duration = state.duration;
+      //state.position!;
+      //state.duration;
       _handlePlaybackEvent();
     });
     streamSubscriptions.add(positionStream);
@@ -97,32 +93,41 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
     streamSubscriptions.add(playbackStream);
 
     final generalStream = player.generalStream.listen((GeneralState state) {
-      state.volume;
-      state.rate;
+      //state.volume;
+      //state.rate;
       _handlePlaybackEvent();
     });
     streamSubscriptions.add(generalStream);
 
     final bufferingProgressStream =
-        player.bufferingProgressStream.listen((buffered) {
-      _bufferedPosition = Duration(seconds: buffered.toInt());
+        player.bufferingProgressStream.listen((double buffered) {
       _handlePlaybackEvent();
     });
     streamSubscriptions.add(bufferingProgressStream);
+
+    final errorStream = player.errorStream.listen((error) {
+      if (error.isNotEmpty) {
+        throw PlatformException(
+          code: 'abort',
+          message: error,
+        );
+      }
+    });
+    streamSubscriptions.add(errorStream);
   }
 
   /// Broadcasts a playback event from the platform side to the plugin side.
   void broadcastPlaybackEvent() {
-    final updateTime = DateTime.now();
     _eventController.add(PlaybackEventMessage(
       processingState: _processingState,
-      updatePosition: _updatePosition,
-      updateTime: updateTime,
-      bufferedPosition: _bufferedPosition,
-      // TODO(libwinmedia): Icy Metadata
+      updatePosition: player.position.position!,
+      updateTime: DateTime.now(),
+      bufferedPosition: Duration(seconds: player.bufferingProgress.toInt()),
+      // TODO: Icy Metadata
       icyMetadata: null,
-      duration: _duration,
-      currentIndex: _currentIndex,
+      duration: player.position.duration,
+      currentIndex: player.current.index,
+      // we do not run on android
       androidAudioSessionId: null,
     ));
   }
