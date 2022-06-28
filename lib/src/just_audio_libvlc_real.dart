@@ -243,9 +243,6 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
   /// Loads an audio source.
   @override
   Future<LoadResponse> load(LoadRequest request) async {
-    if (_isPlaying) {
-      player.pause();
-    }
     player.open(
       _loadAudioSource(request.audioSourceMessage),
       autoStart: false,
@@ -256,7 +253,6 @@ class VlcAudioPlayer extends AudioPlayerPlatform {
     if (request.initialPosition != null) {
       player.seek(request.initialPosition!);
     }
-    player.play();
     return LoadResponse(duration: request.initialPosition);
   }
 
